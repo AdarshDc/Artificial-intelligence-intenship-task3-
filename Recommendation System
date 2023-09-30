@@ -1,0 +1,45 @@
+import numpy as np
+
+# Sample data: User-item matrix (1 if user liked the movie, 0 if not)
+user_item_matrix = np.array([
+    [1, 0, 1, 0, 0, 1],
+    [0, 1, 0, 1, 1, 0],
+    [1, 1, 1, 0, 0, 0],
+    [0, 1, 0, 0, 1, 1],
+    [1, 0, 1, 1, 0, 0]
+])
+
+# Sample movie names corresponding to each column
+movie_names = ["Action Movie", "Comedy Movie", "Drama Movie", "Sci-Fi Movie", "Horror Movie", "Romance Movie"]
+
+
+# Calculate user similarity based on cosine similarity
+def calculate_similarity(user_matrix):
+    similarity_matrix = np.dot(user_matrix, user_matrix.T) / (
+                np.linalg.norm(user_matrix, axis=1, keepdims=True) * np.linalg.norm(user_matrix.T, axis=0,
+                                                                                    keepdims=True))
+    return similarity_matrix
+
+
+# Recommend movies for a given user
+def recommend_movies(user_id, num_recommendations=3):
+    similarity_matrix = calculate_similarity(user_item_matrix)
+    user_preferences = user_item_matrix[user_id]
+    weighted_preferences = np.dot(similarity_matrix[user_id], user_item_matrix)
+
+    # Remove movies already liked by the user
+    weighted_preferences -= user_preferences
+
+    # Get indices of top recommendations
+    top_indices = np.argsort(weighted_preferences)[::-1][:num_recommendations]
+
+    recommended_movies = [(movie_names[i], weighted_preferences[i]) for i in top_indices]
+    return recommended_movies
+
+
+# Example: Recommend movies for user 2
+user_id = 2
+recommendations = recommend_movies(user_id)
+print(f"Recommended movies for User {user_id}:")
+for movie, score in recommendations:
+    print(f"{movie} (Score: {score:.2f})")
